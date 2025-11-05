@@ -62,7 +62,8 @@ EmbeddingDB::EmbeddingDB(const std::string &dbPath, size_t vectorDim, const std:
     // std::string createTableSQL = "CREATE VIRTUAL TABLE IF NOT EXISTS " + tableName_ + " USING vec0(embedding float[" + std::to_string(vectorDim_) +
     //                              "], tname TEXT, distance_metric=" + distanceMetric + ")";
     std::string createTableSQL = "CREATE VIRTUAL TABLE IF NOT EXISTS " + tableName_ +
-        " USING vec0(embedding float[" + std::to_string(vectorDim_) + "], tname TEXT, uuid TEXT)";
+        " USING vec0(embedding float[" + std::to_string(vectorDim_) + 
+        "], tname TEXT, uuid TEXT, distance_metric=" + distanceMetric + ")";
 
     ExecuteSQL(createTableSQL);
     initialized_ = true;
