@@ -82,7 +82,19 @@ bool EmbeddingDB::InsertVector(const std::vector<float> &vector, int64_t &allocI
 
 bool EmbeddingDB::InsertVector(int64_t id, const std::vector<float> &vector, int64_t &allocId, const std::string &tName) {
     CheckVectorDimension(vector);
-
+    // Normalize the vector
+    std::vector<float> normalized = vector;
+    float norm = 0.0f;
+    for (float v : normalized) {
+        norm += v * v;
+    }
+    norm = std::sqrt(norm);
+    if (norm > 1e-6) {
+        for (float &v : normalized) {
+            v /= norm;
+        }
+    }
+    
     sqlite3_stmt *stmt;
     std::string sql;
     std::string uuid = GenerateUUID();
@@ -102,12 +114,12 @@ bool EmbeddingDB::InsertVector(int64_t id, const std::vector<float> &vector, int
 
     if (idMode_ == IdMode::AUTO_INCREMENT) {
         sqlite3_bind_text(stmt, 1, tName.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_blob(stmt, 2, vector.data(), vector.size() * sizeof(float), SQLITE_STATIC);
+        sqlite3_bind_blob(stmt, 2, normalized.data(), vector.size() * sizeof(float), SQLITE_STATIC);
         sqlite3_bind_text(stmt, 3, uuid.c_str(), -1, SQLITE_TRANSIENT);
     } else {
         sqlite3_bind_int64(stmt, 1, id);
         sqlite3_bind_text(stmt, 2, tName.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_blob(stmt, 3, vector.data(), vector.size() * sizeof(float), SQLITE_STATIC);
+        sqlite3_bind_blob(stmt, 3, normalized.data(), vector.size() * sizeof(float), SQLITE_STATIC);
         sqlite3_bind_text(stmt, 4, uuid.c_str(), -1, SQLITE_TRANSIENT);
     }
 
