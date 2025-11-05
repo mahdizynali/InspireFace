@@ -158,7 +158,11 @@ std::vector<int64_t> EmbeddingDB::BatchInsertVectors(const std::vector<VectorDat
     for (const auto &data : vectors) {
         int64_t id = 0;
         bool ret = InsertVector(data.id, data.vector, id, tName);
-        INSPIREFACE_CHECK_MSG(ret, "Failed to insert vector");
+        if (!ret) {
+            ExecuteSQL("ROLLBACK");
+            INSPIRE_LOGE("Failed to batch insert vectors, transaction rolled back");
+            return {};
+        }
         insertedIds.push_back(id);
     }
     ExecuteSQL("COMMIT");
